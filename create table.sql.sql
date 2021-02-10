@@ -116,3 +116,13 @@ CREATE TABLE Wydarzenia_Uczestnicy (
     Id_Konta INT NOT NULL FOREIGN KEY REFERENCES Konta(Id),
     Status_Uczestnictwa VARCHAR(16) NOT NULL CHECK (Status_Uczestnictwa IN ('uczestniczy', 'odmówił', 'nie odpowiedział', 'zainteresowany')) DEFAULT 'nie odpowiedział'
 )
+
+CREATE TABLE Posty_Archiwum (
+    Id INT NOT NULL PRIMARY KEY IDENTITY (1,1),
+    Treść VARCHAR(MAX) NOT NULL CHECK (LEN(Treść) > 5),
+    Id_Autora INT NOT NULL REFERENCES Konta(Id),
+    Id_Grupy INT REFERENCES Grupy(Id),
+    Ilość_Polubień INT NOT NULL,
+    Data_dodania DATETIME NOT NULL,
+    Data_usunięcia DATETIME NOT NULL
+)
