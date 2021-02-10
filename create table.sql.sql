@@ -124,5 +124,6 @@ CREATE TABLE Posty_Archiwum (
     Id_Grupy INT REFERENCES Grupy(Id),
     Ilość_Polubień INT NOT NULL,
     Data_dodania DATETIME NOT NULL,
-    Data_usunięcia DATETIME NOT NULL
+    Data_usunięcia DATETIME NOT NULL,
+    Stan VARCHAR(9) NOT NULL CHECK (Stan IN ('edycja', 'usunięcie'))
 )
