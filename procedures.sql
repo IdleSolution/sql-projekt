@@ -163,6 +163,11 @@ GO
 CREATE OR ALTER PROCEDURE ZmieńZdjęcieProfilowe (@IdKonta INT, @IdNowegoProfilowego INT = NULL, @Ścieżka VARCHAR(255) = NULL, @Podpis VARCHAR(30) = NULL, @Wymiary VARCHAR(11) = NULL)
 AS
 BEGIN TRANSACTION
+
+    IF ((SELECT COUNT (*) FROM Konta WHERE Id = @Id_Konta) = 0) BEGIN
+        ROLLBACK
+        RAISERROR('Brak konta któremu probowano zmienić zdjęcie profilowe', 16, 1)
+    END
     
     IF ((SELECT COUNT(*) FROM Zdjęcia WHERE Id = @IdNowegoProfilowego) = 1) 
     BEGIN
@@ -172,6 +177,12 @@ BEGIN TRANSACTION
     END
     ELSE
     BEGIN
+
+        IF (@Ścieżka = NULL OR @Podpis = NULL OR @Wymiary = NULL) BEGIN
+            ROLLBACK
+            RAISERROR('Brak odpowiednich paramatrów do zmiany zdjęcia profilowego', 16, 1)
+        END
+
         INSERT INTO Zdjęcia (Ścieżka, Id_Konta, Podpis, Wymiary) VALUES (@Ścieżka, @IdKonta, @Podpis, @Wymiary)
 
         DECLARE @NoweZdjęcieId INT
