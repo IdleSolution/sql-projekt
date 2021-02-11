@@ -142,5 +142,6 @@ BEGIN
         DELETE FROM Komentarze
         WHERE Id_Postu = @IdPostu
     END
-
 END
+COMMIT
+GO
