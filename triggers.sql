@@ -46,7 +46,6 @@ CREATE TRIGGER DodajKonto
 ON Konta
 INSTEAD OF INSERT
 AS
-BEGIN TRANSACTION
 
 DECLARE @Count INT
 SET @Count = (
@@ -69,7 +68,6 @@ SET @Hasło = (SELECT HASHBYTES('SHA2_256', @Hasło))
 INSERT INTO Konta VALUES (Login, @Hasło, Email)
 SELECT Login, Email FROM inserted
 
-COMMIT
 GO
 
 -----------------------------------------------
@@ -78,7 +76,6 @@ CREATE TRIGGER EdytujKonto
 ON Konta
 INSTEAD OF UPDATE
 AS
-BEGIN TRANSACTION
 
 IF ((SELECT COUNT(*) FROM inserted) > 1)
 BEGIN
@@ -155,5 +152,62 @@ BEGIN
     FROM Konta
 END
 
-COMMIT
+GO
+
+---------------------------------------------
+
+CREATE TRIGGER DodajZnajomych
+ON Znajomi
+AFTER INSERT
+AS
+
+DECLARE @Id1 INT
+DECLARE @Id2 INT
+SET @Id1 = (
+    SELECT Id1 FROM inserted
+)
+
+SET @Id2 = (
+    SELECT Id2 FROM inserted
+)
+
+UPDATE k
+SET k.Liczba_znajomych = k.Liczba_znajomych + 1
+FROM Konta
+WHERE k.Id = @Id1
+
+UPDATE k
+SET k.Liczba_znajomych = k.Liczba_znajomych + 1
+FROM Konta
+WHERE k.Id = @Id2
+
+GO
+
+
+---------------------------------------------------
+CREATE TRIGGER UsuńZnajomych
+ON Znajomi
+AFTER DELETE
+AS
+
+DECLARE @Id1 INT
+DECLARE @Id2 INT
+SET @Id1 = (
+    SELECT Id1 FROM deleted
+)
+
+SET @Id2 = (
+    SELECT Id2 FROM deleted
+)
+
+UPDATE k
+SET k.Liczba_znajomych = k.Liczba_znajomych - 1
+FROM Konta
+WHERE k.Id = @Id1
+
+UPDATE k
+SET k.Liczba_znajomych = k.Liczba_znajomych - 1
+FROM Konta
+WHERE k.Id = @Id2
+
 GO

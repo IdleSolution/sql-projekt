@@ -76,3 +76,8 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER PROCEDURE DodajZnajomych(
+    @IdWysyłającego INT,
+    @IdPrzyjmującego INT
+)
+AS
