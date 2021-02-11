@@ -1,21 +1,3 @@
-CREATE TABLE Konta (
-    Id INT NOT NULL PRIMARY KEY IDENTITY (1,1),
-    Login VARCHAR(20) NOT NULL UNIQUE CHECK (LEN(Login) > 5 AND LEN(Login) < 21),
-    Hasło VARCHAR(255) NOT NULL,
-    Email VARCHAR(30) NOT NULL UNIQUE CHECK (EMAIL LIKE '%_@__%.__%'),
-    Liczba_Znajomych INT DEFAULT 0,
-);
-
-CREATE TABLE Dane_Osobowe (
-    Pesel VARCHAR (11) CHECK (LEN(Pesel) = 11) PRIMARY KEY,
-    Imię VARCHAR(50),
-    Nazwisko VARCHAR(50),
-    Nr_Telefonu VARCHAR(9) CHECK (LEN(Nr_Telefonu) = 9),
-    Urodziny DATETIME,
-    Id_Adresu INT FOREIGN KEY REFERENCES Adresy(Id),
-    Id_Konta INT NOT NULL FOREIGN KEY REFERENCES Konta(Id)
-)
-
 CREATE TABLE Adresy (
     Id INT PRIMARY KEY,
     Województwo VARCHAR(19) NOT NULL,
@@ -23,6 +5,24 @@ CREATE TABLE Adresy (
     Ulica VARCHAR(30) NOT NULL,
     Kod_Pocztowy VARCHAR(6) NOT NULL,
 )
+
+CREATE TABLE Dane_Osobowe (
+    Pesel VARCHAR (11) CHECK (LEN(Pesel) = 11) PRIMARY KEY,
+    Imię VARCHAR(50),
+    Nazwisko VARCHAR(50),
+    Nr_Telefonu VARCHAR(9) CHECK (LEN(Nr_Telefonu) = 9),
+    Urodziny DATETIME,
+    Id_Adresu INT FOREIGN KEY REFERENCES Adresy(Id)
+)
+
+CREATE TABLE Konta (
+    Id INT NOT NULL PRIMARY KEY IDENTITY (1,1),
+    Login VARCHAR(20) NOT NULL UNIQUE CHECK (LEN(Login) > 5 AND LEN(Login) < 21),
+    Hasło VARCHAR(255) NOT NULL,
+    Email VARCHAR(30) NOT NULL UNIQUE CHECK (EMAIL LIKE '%_@__%.__%'),
+    Liczba_Znajomych INT DEFAULT 0,
+    Pesel VARCHAR(11) FOREIGN KEY REFERENCES Dane_Osobowe(Pesel)
+);
 
 
 CREATE TABLE Zdjęcia (
@@ -34,9 +34,11 @@ CREATE TABLE Zdjęcia (
 )
 
 CREATE TABLE Zdjęcia_Profilowe (
-    Id_Konta INT NOT NULL FOREIGN KEY REFERENCES Konto(Id) PRIMARY KEY,
+    Id_Konta INT NOT NULL FOREIGN KEY REFERENCES Konta(Id) PRIMARY KEY,
     Id_Zdjęcia INT NOT NULL REFERENCES Zdjęcia(Id)
 )
+
+
 
 CREATE TABLE Znajomi (
     Id1 INT NOT NULL REFERENCES Konta(Id),
@@ -64,8 +66,8 @@ CREATE TABLE Moderatorzy_Grup (
 
 CREATE TABLE Grupy_Kategorie (
     Id_Grupy INT NOT NULL REFERENCES Grupy(Id),
-    Nazwa_Kategorii INT NOT NULL REFERENCES Kategorie(Nazwa),
-    PRIMARY KEY(Id_Grupy, Id_Kategorii)
+    Nazwa_Kategorii VARCHAR(50) NOT NULL REFERENCES Kategorie(Nazwa),
+    PRIMARY KEY(Id_Grupy, Nazwa_Kategorii)
 )
 
 CREATE TABLE Posty (
@@ -107,8 +109,8 @@ CREATE TABLE Wydarzenia (
 
 CREATE TABLE Wydarzenia_Kategorie (
     Id_Wydarzenia INT NOT NULL FOREIGN KEY REFERENCES Wydarzenia(Id),
-    Nazwa_Kategorii INT NOT NULL FOREIGN KEY REFERENCES Kategorie(Nazwa),
-    PRIMARY KEY(Id_Wydarzenia, Id_Kategorii)
+    Nazwa_Kategorii VARCHAR(50) NOT NULL FOREIGN KEY REFERENCES Kategorie(Nazwa),
+    PRIMARY KEY(Id_Wydarzenia, Nazwa_Kategorii)
 )
 
 
@@ -124,7 +126,7 @@ CREATE TABLE Posty_Archiwum (
     Id_Autora INT NOT NULL REFERENCES Konta(Id),
     Id_Grupy INT REFERENCES Grupy(Id),
     Ilość_Polubień INT NOT NULL,
-    Data_dodania DATETIME NOT NULL,
-    Data_usunięcia DATETIME NOT NULL,
+    Data_Dodania DATETIME NOT NULL,
+    Data_Usunięcia DATETIME NOT NULL,
     Stan VARCHAR(9) NOT NULL CHECK (Stan IN ('edycja', 'usunięcie'))
 )
