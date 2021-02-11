@@ -76,8 +76,71 @@ BEGIN
 END
 GO
 
-CREATE OR ALTER PROCEDURE DodajZnajomych(
-    @IdWysyłającego INT,
-    @IdPrzyjmującego INT
-)
+-----------------------------------------------------------------------------
+
+CREATE OR ALTER PROCEDURE PrzywróćUsuniętyPost(@IdPostu INT)
 AS
+BEGIN TRANSACTION
+
+INSERT INTO Posty VALUES(Treść, Id_Autora, Id_Grupy, Ilość_Polubień, Data_Dodania)
+SELECT Treść, Id_Autora, Id_Grupy, Ilość_Polubień, Data_Dodania
+FROM Posty_Archiwum
+WHERE Id = @IdPostu
+
+DELETE FROM Posty_Archiwum
+WHERE Id = @IdPostu
+
+COMMIT
+GO
+
+
+-------------------------------------------------------------------------
+
+CREATE OR ALTER PROCEDURE UsuńPost(@IdUżytkownika INT, @IdPostu INT)
+AS
+BEGIN TRANSACTION
+
+DECLARE @IdAutora INT
+SET @IdAutora = (
+    SELECT Id_Autora
+    FROM Posty
+    WHERE Id = @IdPostu
+)
+
+IF (@IdAutora = @IdUżytkownika)
+BEGIN
+    DELETE FROM Posty
+    WHERE Id = @IdPostu
+
+    DELETE FROM Komentarze
+    WHERE Id_Postu = @IdPostu
+END
+ELSE
+BEGIN
+    DECLARE @IdGrupy INT
+    SET @IdGrupy = (
+        SELECT Id_Grupy FROM Posty
+        WHERE Id_Postu = @IdPostu
+    )
+
+    DECLARE @Uprawnienia INT
+    SET @Uprawnienia =  ( 
+        SELECT Uprawnienia
+        FROM Moderatorzy_Grup
+        WHERE Id_Grupy = @IdGrupy AND Id_Moderatora = @IdUżytkownika
+        )
+    IF(@Uprawnienia <> 2 OR @Uprawnienia <> 3)
+    BEGIN
+        ROLLBACK
+        RAISERROR('Brak uprawnień użytkownika do usunięcia postu!', 16, 1)
+    END
+    ELSE
+    BEGIN
+        DELETE FROM Posty
+        WHERE Id = @IdPostu
+
+        DELETE FROM Komentarze
+        WHERE Id_Postu = @IdPostu
+    END
+
+END
