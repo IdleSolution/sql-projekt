@@ -157,3 +157,32 @@ BEGIN
 END
 COMMIT
 GO
+
+--------
+
+CREATE OR ALTER PROCEDURE ZmieńZdjęcieProfilowe (@IdKonta INT, @IdNowegoProfilowego INT = NULL, @Ścieżka VARCHAR(255) = NULL, @Podpis VARCHAR(30) = NULL, @Wymiary VARCHAR(11) = NULL)
+AS
+BEGIN TRANSACTION
+    
+    IF ((SELECT COUNT(*) FROM Zdjęcia WHERE Id = @IdNowegoProfilowego) = 1) 
+    BEGIN
+        UPDATE Zdjęcia_Profilowe
+        SET Id_Zdjęcia = (SELECT Id FROM Zdjęcia WHERE Id = @IdNowegoProfilowego)
+        WHERE Id_Konta = @IdKonta
+    END
+    ELSE
+    BEGIN
+        INSERT INTO Zdjęcia (Ścieżka, Id_Konta, Podpis, Wymiary) VALUES (@Ścieżka, @IdKonta, @Podpis, @Wymiary)
+
+        DECLARE @NoweZdjęcieId INT
+        SET @NoweZdjęcieId = (
+            SELECT Id
+            FROM Zdjęcia
+            WHERE Ścieżka = @Ścieżka
+        )
+
+        UPDATE Zdjęcia_Profilowe
+        SET Id_Zdjęcia = @NoweZdjęcieId
+    END
+COMMIT
+GO
