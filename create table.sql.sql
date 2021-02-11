@@ -123,10 +123,10 @@ CREATE TABLE Wydarzenia_Uczestnicy (
 CREATE TABLE Posty_Archiwum (
     Id INT NOT NULL PRIMARY KEY IDENTITY (1,1),
     Treść VARCHAR(MAX) NOT NULL CHECK (LEN(Treść) > 5),
-    Id_Autora INT NOT NULL REFERENCES Konta(Id),
+    Id_Autora INT NOT NULL FOREIGN KEY REFERENCES Konta(Id),
     Id_Grupy INT REFERENCES Grupy(Id),
     Ilość_Polubień INT NOT NULL,
     Data_Dodania DATETIME NOT NULL,
-    Data_Usunięcia DATETIME NOT NULL,
+    Data_Zmiany DATETIME NOT NULL,
     Stan VARCHAR(9) NOT NULL CHECK (Stan IN ('edycja', 'usunięcie'))
 )

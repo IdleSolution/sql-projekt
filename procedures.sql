@@ -82,6 +82,18 @@ CREATE OR ALTER PROCEDURE PrzywróćUsuniętyPost(@IdPostu INT)
 AS
 BEGIN TRANSACTION
 
+DECLARE @Stan VARCHAR(9)
+SET @Stan = (
+    SELECT Stan FROM Posty_Archiwum
+    WHERE Id = @IdPostu
+)
+
+IF(@Stan <> 'usunięcie')
+BEGIN
+    ROLLBACK
+    RAISERROR('Post nigdy nie został usunięty!', 16, 1)
+END
+
 INSERT INTO Posty VALUES(Treść, Id_Autora, Id_Grupy, Ilość_Polubień, Data_Dodania)
 SELECT Treść, Id_Autora, Id_Grupy, Ilość_Polubień, Data_Dodania
 FROM Posty_Archiwum
