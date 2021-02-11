@@ -39,3 +39,121 @@ SELECT Treść, Id_Autora, Id_Grupy, Ilość_Polubień, Data_Dodania
 FROM Deleted 
 
 GO
+
+--------------------------------------
+
+CREATE TRIGGER DodajKonto
+ON Konta
+INSTEAD OF INSERT
+AS
+BEGIN TRANSACTION
+
+DECLARE @Count INT
+SET @Count = (
+    SELECT COUNT(*) FROM inserted
+)
+
+IF(@Count > 1)
+BEGIN
+    ROLLBACK
+    RAISERROR('Można dodać tylko jednego użytkownika na raz', 16, 1)
+END
+
+DECLARE @Hasło VARCHAR(255)
+SET @Hasło = (
+    SELECT Hasło FROM inserted
+)
+
+SET @Hasło = (SELECT HASHBYTES('SHA2_256', @Hasło))
+
+INSERT INTO Konta VALUES (Login, @Hasło, Email)
+SELECT Login, Email FROM inserted
+
+COMMIT
+GO
+
+-----------------------------------------------
+
+CREATE TRIGGER EdytujKonto
+ON Konta
+INSTEAD OF UPDATE
+AS
+BEGIN TRANSACTION
+
+IF ((SELECT COUNT(*) FROM inserted) > 1)
+BEGIN
+    ROLLBACK
+    RAISERROR('Można zrobić tylko jedną aktualizację konta na raz!', 16, 1)
+END
+
+IF (UPDATE(Hasło) AND UPDATE(Email))
+BEGIN
+    ROLLBACK
+    RAISERROR('Nie można aktualizować hasła i emailu jednocześnie!', 16, 1)
+END
+IF (UPDATE(Login))
+BEGIN
+    ROLLBACK
+    RAISERROR('Nie można aktualizować loginu konta!', 16, 1)
+END
+
+DECLARE @Id INT
+SET @Id = (
+    SELECT Id FROM inserted
+)
+
+DECLARE @LiczbaZnajomychWcześniej INT
+DECLARE @LiczbaZnajomychPóźniej INT
+SET @LiczbaZnajomychWcześniej = (
+    SELECT Liczba_Znajomych
+    FROM Konta
+    WHERE Id = @Id
+)
+SET @LiczbaZnajomychPóźniej = (
+    SELECT Liczba_Znajomych
+    FROM inserted
+)
+
+IF(@LiczbaZnajomychPóźniej - @LiczbaZnajomychWcześniej <> 0 OR 
+    @LiczbaZnajomychPóźniej - @LiczbaZnajomychWcześniej <> 1 OR
+    @LiczbaZnajomychPóźniej - @LiczbaZnajomychWcześniej <> -1)
+BEGIN
+    ROLLBACK
+    RAISERROR('Liczba znajomych może się zmienić co najwyżej o 1!', 16, 1)
+END
+
+IF (UPDATE(Hasło))
+BEGIN
+    DECLARE @Hasło VARCHAR(255)
+    SET @Hasło = (
+        SELECT Hasło FROM inserted
+    )
+
+    SET @Hasło = (SELECT HASHBYTES('SHA2_256', @Hasło))
+
+    UPDATE k
+    SET Hasło = @Hasło
+    FROM Konta
+END
+
+IF (UPDATE(Email))
+BEGIN
+    DECLARE @Email VARCHAR(30)
+    SET @Email = (
+        SELECT Email FROM inserted
+    )
+
+    UPDATE k
+    SET Email = @Email
+    FROM Konta
+END
+
+IF (UPDATE(Liczba_Znajomych))
+BEGIN
+    UPDATE k
+    SET Liczba_Znajomych = @LiczbaZnajomychPóźniej
+    FROM Konta
+END
+
+COMMIT
+GO
