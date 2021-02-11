@@ -6,6 +6,4 @@ INNER JOIN (
     FROM Komentarze K
     GROUP BY K.Id_Postu
 ) A ON A.Id_Postu = P.Id
-WHERE P.Id = @X
-
 -----
