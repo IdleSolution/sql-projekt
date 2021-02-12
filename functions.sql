@@ -124,3 +124,35 @@ RETURN
 
 END
 GO
+
+------
+
+CREATE OR ALTER FUNCTION ZnajomiWGrupie (@IdKonta INT, @IdGrupy INT)
+RETURNS @ZnajomiWGrupie TABLE (
+    Id_Znajomego INT 
+)
+AS
+BEGIN
+
+    INSERT INTO @ZnajomiWGrupie VALUES (Id_Znajomego)
+    SELECT Id1
+    FROM Znajomi
+    WHERE Id2 = @IdKonta AND Id2 IN (
+        SELECT Id_Konta
+        FROM Grupy_Członkowie
+        WHERE Id_Grupy = @IdGrupy
+    )
+
+    INSERT INTO @ZnajomiWGrupie VALUES (Id_Znajomego)
+    SELECT Id2
+    FROM Znajomi
+    WHERE Id1 = @IdKonta AND Id2 IN (
+        SELECT Id_Konta
+        FROM Grupy_Członkowie
+        WHERE Id_Grupy = @IdGrupy
+    )
+
+    RETURN
+END
+
+------
