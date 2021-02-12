@@ -38,8 +38,6 @@ CREATE TABLE Zdjęcia_Profilowe (
     Id_Zdjęcia INT NOT NULL REFERENCES Zdjęcia(Id)
 )
 
-
-
 CREATE TABLE Znajomi (
     Id1 INT NOT NULL REFERENCES Konta(Id),
     Id2 INT NOT NULL REFERENCES Konta(Id),
