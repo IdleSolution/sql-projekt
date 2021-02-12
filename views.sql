@@ -32,3 +32,15 @@ INNER JOIN (
 GO
 
 -----------
+
+CREATE VIEW OsobyTenSamAdres AS
+SELECT DO.Imię, DO.Nazwisko, DO.Nr_Telefonu, AD.TenSamAdres
+FROM Dane_Osobowe DO
+INNER JOIN (
+    SELECT DO.Id_Adresu, COUNT (*) AS TenSamAdres
+    FROM Dane_Osobowe DO
+    GROUP BY Id_Adresu
+) AD ON AD.Id_Adresu = DO.Id_Adresu 
+GO
+
+----------
