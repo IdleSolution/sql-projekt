@@ -160,7 +160,7 @@ GO
 
 --------
 
-CREATE OR ALTER PROCEDURE ZmieńZdjęcieProfilowe (@IdKonta INT, @IdNowegoProfilowego INT = NULL, @Ścieżka VARCHAR(255) = NULL, @Podpis VARCHAR(30) = NULL, @Wymiary VARCHAR(11) = NULL)
+CREATE OR ALTER PROCEDURE ZmieńZdjęcieProfilowe (@IdKonta INT, @Ścieżka VARCHAR(255), @IdNowegoProfilowego INT = NULL, @Podpis VARCHAR(30) = NULL, @Wymiary VARCHAR(11) = NULL)
 AS
 BEGIN TRANSACTION
 
@@ -172,28 +172,48 @@ BEGIN TRANSACTION
     IF ((SELECT COUNT(*) FROM Zdjęcia WHERE Id = @IdNowegoProfilowego) = 1) 
     BEGIN
         UPDATE Zdjęcia_Profilowe
-        SET Id_Zdjęcia = (SELECT Id FROM Zdjęcia WHERE Id = @IdNowegoProfilowego)
+        SET Id_Zdjęcia = @IdNowegoProfilowego
         WHERE Id_Konta = @IdKonta
     END
     ELSE
     BEGIN
-
-        IF (@Ścieżka = NULL OR @Podpis = NULL OR @Wymiary = NULL) BEGIN
-            ROLLBACK
-            RAISERROR('Brak odpowiednich paramatrów do zmiany zdjęcia profilowego', 16, 1)
-        END
-
         INSERT INTO Zdjęcia (Ścieżka, Id_Konta, Podpis, Wymiary) VALUES (@Ścieżka, @IdKonta, @Podpis, @Wymiary)
 
-        DECLARE @NoweZdjęcieId INT
-        SET @NoweZdjęcieId = (
+        SET @IdNowegoProfilowego = (
             SELECT Id
             FROM Zdjęcia
             WHERE Ścieżka = @Ścieżka
         )
 
         UPDATE Zdjęcia_Profilowe
-        SET Id_Zdjęcia = @NoweZdjęcieId
+        SET Id_Zdjęcia = @IdNowegoProfilowego
+        WHERE Id_Konta = @IdKonta
     END
+COMMIT
+GO
+
+---------------------------------------
+
+CREATE OR ALTER PROCEDURE NajlepsiPosterzyMiesiąca(@IdGrupy INT)
+AS
+BEGIN TRANSACTION
+
+DECLARE @NajlepsiPosterzy TABLE (
+    IdPostera INT
+)
+
+INSERT INTO @NajlepsiPosterzy VALUES(Id_Konta)
+SELECT Id_Konta FROM dbo.NajlepsiPosterzyWGrupie(@IdGrupy)
+
+UPDATE gc
+SET Najlepszy_Poster_Miesiąca = 0
+FROM Grupy_Członkowie
+WHERE Id_Grupy = @IdGrupy
+
+UPDATE gc
+SET Najlepszy_Poster_Miesiąca = 1
+FROM Grupy_Członkowie
+WHERE @Id_Konta IN (@NajlepsiPosterzy) AND Id_Grupy = @IdGrupy
+
 COMMIT
 GO

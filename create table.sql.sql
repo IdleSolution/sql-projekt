@@ -70,7 +70,8 @@ CREATE TABLE Grupy_Kategorie (
 
 CREATE TABLE Grupy_Członkowie (
     Id_Grupy INT NOT NULL REFERENCES Grupy(Id),
-    Id_Konta INT NOT NULL REFERENCES Konta(Id)
+    Id_Konta INT NOT NULL REFERENCES Konta(Id),
+    Najlepszy_Poster_Miesiąca BIT NOT NULL DEFAULT 0
     PRIMARY KEY(Id_Grupy, Id_Konta)
 )
 
