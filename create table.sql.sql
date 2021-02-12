@@ -70,6 +70,12 @@ CREATE TABLE Grupy_Kategorie (
     PRIMARY KEY(Id_Grupy, Nazwa_Kategorii)
 )
 
+CREATE TABLE Grupy_Członkowie (
+    Id_Grupy INT NOT NULL REFERENCES Grupy(Id),
+    Id_Konta INT NOT NULL REFERENCES Konta(Id)
+    PRIMARY KEY(Id_Grupy, Id_Konta)
+)
+
 CREATE TABLE Posty (
     Id INT NOT NULL PRIMARY KEY IDENTITY (1,1),
     Treść VARCHAR(MAX) NOT NULL CHECK (LEN(Treść) > 5),
