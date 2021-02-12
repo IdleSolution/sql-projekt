@@ -141,7 +141,7 @@ BEGIN
         FROM Moderatorzy_Grup
         WHERE Id_Grupy = @IdGrupy AND Id_Moderatora = @IdUżytkownika
         )
-    IF(@Uprawnienia <> 2 OR @Uprawnienia <> 3)
+    IF(@Uprawnienia <> 2 AND @Uprawnienia <> 3)
     BEGIN
         ROLLBACK
         RAISERROR('Brak uprawnień użytkownika do usunięcia postu!', 16, 1)

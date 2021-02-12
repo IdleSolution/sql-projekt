@@ -6,23 +6,23 @@ CREATE TABLE Adresy (
     Kod_Pocztowy VARCHAR(6) NOT NULL,
 )
 
-CREATE TABLE Dane_Osobowe (
-    Pesel VARCHAR (11) CHECK (LEN(Pesel) = 11) PRIMARY KEY,
-    Imię VARCHAR(50),
-    Nazwisko VARCHAR(50),
-    Nr_Telefonu VARCHAR(9) CHECK (LEN(Nr_Telefonu) = 9),
-    Urodziny DATETIME,
-    Id_Adresu INT FOREIGN KEY REFERENCES Adresy(Id)
-)
-
 CREATE TABLE Konta (
     Id INT NOT NULL PRIMARY KEY IDENTITY (1,1),
     Login VARCHAR(20) NOT NULL UNIQUE CHECK (LEN(Login) > 5 AND LEN(Login) < 21),
     Hasło VARCHAR(255) NOT NULL,
     Email VARCHAR(30) NOT NULL UNIQUE CHECK (EMAIL LIKE '%_@__%.__%'),
     Liczba_Znajomych INT DEFAULT 0,
-    Pesel VARCHAR(11) FOREIGN KEY REFERENCES Dane_Osobowe(Pesel)
 );
+
+CREATE TABLE Dane_Osobowe (
+    Pesel VARCHAR (11) CHECK (LEN(Pesel) = 11) PRIMARY KEY,
+    Imię VARCHAR(50),
+    Nazwisko VARCHAR(50),
+    Nr_Telefonu VARCHAR(9) CHECK (LEN(Nr_Telefonu) = 9),
+    Urodziny DATETIME,
+    Id_Adresu INT FOREIGN KEY REFERENCES Adresy(Id),
+    Id_Konta INT FOREIGN KEY REFERENCES Konta(Id)
+)
 
 
 CREATE TABLE Zdjęcia (

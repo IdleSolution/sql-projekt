@@ -59,3 +59,68 @@ BEGIN
     RETURN
 END
 GO
+
+
+----------------------------------------------------
+
+CREATE OR ALTER FUNCTION NajlepsiPosterzyWGrupie (@IdGrupy INT)
+RETURNS @NajlepsiPosterzy TABLE
+(
+    Id_Konta INT,
+    Imię VARCHAR(50),
+    Nazwisko VARCHAR(50),
+    Ilość_Polubień INT
+)
+AS
+BEGIN
+
+INSERT INTO @NajlepsiPosterzy VALUES(k.Id, d.Imię, d.Nazwisko, p.Ilość_Polubień)
+SELECT TOP 5 k.Id, d.Imię, d.Naziwsko, p.Ilość_Polubień
+FROM Posty p
+INNER JOIN Konta k ON p.Id_Autora = k.Id
+INNER JOIN Dane_Osobowe d ON k.Id = d.Id_Konta
+WHERE p.Id_Grupy = @IdGrupy
+GROUP BY p.Id_Autora
+ORDER BY p.Ilość_Polubień DESC
+
+RETURN
+
+END
+GO
+
+
+----------------------------------------------------------
+
+CREATE OR ALTER FUNCTION SzukajUżytkowników (@CiągZnakowy VARCHAR(255))
+RETURNS @Użytkownicy TABLE
+(
+    Id_Konta INT,
+    Imię VARCHAR(50),
+    Nazwisko VARCHAR(50),
+    Id_Zdjęcia_Profilowego INT
+)
+AS
+BEGIN
+DECLARE @PoczątekImienia VARCHAR(50)
+DECLARE @PoczątekNazwiska VARCHAR(50)
+SET @PoczątekImienia = (
+    SELECT PARSENAME(REPLACE(@CiągZnakowy, ' ', '.'), 2)
+)
+SET @PoczątekNazwiska = (
+    SELECT PARSENAME(REPLACE(@CiągZnakowy, ' ', '.'), 1)
+)
+
+IF(@PoczątekNazwiska IS NULL)
+BEGIN
+    SET @PoczątekNazwiska = ''
+END
+
+INSERT INTO @Użytkownicy VALUES(d.Id_Konta, d.Imię, d.Nazwisko, z.Id_Zdjęcia_Profilowego)
+SELECT d.Id_Konta, d.Imię, d.Nazwisko, z.Id_Zdjęcia_Profilowego FROM Dane_Osobowe
+INNER JOIN Zdjęcia_Profilowe z ON z.Id_Konta = d.Id_Konta
+WHERE d.Imię LIKE @PoczątekImienia + '%' AND d.Nazwisko LIKE @PoczątekNazwiska + '%'
+
+RETURN
+
+END
+GO
