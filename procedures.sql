@@ -82,25 +82,25 @@ CREATE OR ALTER PROCEDURE PrzywróćUsuniętyPost(@IdPostu INT)
 AS
 BEGIN TRANSACTION
 
-DECLARE @Stan VARCHAR(9)
-SET @Stan = (
-    SELECT Stan FROM Posty_Archiwum
+    DECLARE @Stan VARCHAR(9)
+    SET @Stan = (
+        SELECT Stan FROM Posty_Archiwum
+        WHERE Id = @IdPostu
+    )
+
+    IF(@Stan <> 'usunięcie')
+    BEGIN
+        ROLLBACK
+        RAISERROR('Post nigdy nie został usunięty!', 16, 1)
+    END
+
+    INSERT INTO Posty VALUES(Treść, Id_Autora, Id_Grupy, Ilość_Polubień, Data_Dodania)
+    SELECT Treść, Id_Autora, Id_Grupy, Ilość_Polubień, Data_Dodania
+    FROM Posty_Archiwum
     WHERE Id = @IdPostu
-)
 
-IF(@Stan <> 'usunięcie')
-BEGIN
-    ROLLBACK
-    RAISERROR('Post nigdy nie został usunięty!', 16, 1)
-END
-
-INSERT INTO Posty VALUES(Treść, Id_Autora, Id_Grupy, Ilość_Polubień, Data_Dodania)
-SELECT Treść, Id_Autora, Id_Grupy, Ilość_Polubień, Data_Dodania
-FROM Posty_Archiwum
-WHERE Id = @IdPostu
-
-DELETE FROM Posty_Archiwum
-WHERE Id = @IdPostu
+    DELETE FROM Posty_Archiwum
+    WHERE Id = @IdPostu
 
 COMMIT
 GO
@@ -198,22 +198,22 @@ CREATE OR ALTER PROCEDURE NajlepsiPosterzyMiesiąca(@IdGrupy INT)
 AS
 BEGIN TRANSACTION
 
-DECLARE @NajlepsiPosterzy TABLE (
-    IdPostera INT
-)
+    DECLARE @NajlepsiPosterzy TABLE (
+        IdPostera INT
+    )
 
-INSERT INTO @NajlepsiPosterzy VALUES(Id_Konta)
-SELECT Id_Konta FROM dbo.NajlepsiPosterzyWGrupie(@IdGrupy)
+    INSERT INTO @NajlepsiPosterzy VALUES(Id_Konta)
+    SELECT Id_Konta FROM dbo.NajlepsiPosterzyWGrupie(@IdGrupy)
 
-UPDATE gc
-SET Najlepszy_Poster_Miesiąca = 0
-FROM Grupy_Członkowie
-WHERE Id_Grupy = @IdGrupy
+    UPDATE gc
+    SET Najlepszy_Poster_Miesiąca = 0
+    FROM Grupy_Członkowie
+    WHERE Id_Grupy = @IdGrupy
 
-UPDATE gc
-SET Najlepszy_Poster_Miesiąca = 1
-FROM Grupy_Członkowie
-WHERE @Id_Konta IN (@NajlepsiPosterzy) AND Id_Grupy = @IdGrupy
+    UPDATE gc
+    SET Najlepszy_Poster_Miesiąca = 1
+    FROM Grupy_Członkowie
+    WHERE @Id_Konta IN (@NajlepsiPosterzy) AND Id_Grupy = @IdGrupy
 
-COMMIT
+    COMMIT
 GO
