@@ -127,8 +127,8 @@ SET @LiczbaZnajomychPóźniej = (
     FROM inserted
 )
 
-IF(@LiczbaZnajomychPóźniej - @LiczbaZnajomychWcześniej <> 0 OR 
-    @LiczbaZnajomychPóźniej - @LiczbaZnajomychWcześniej <> 1 OR
+IF(@LiczbaZnajomychPóźniej - @LiczbaZnajomychWcześniej <> 0 AND 
+    @LiczbaZnajomychPóźniej - @LiczbaZnajomychWcześniej <> 1 AND
     @LiczbaZnajomychPóźniej - @LiczbaZnajomychWcześniej <> -1)
 BEGIN
     ROLLBACK
