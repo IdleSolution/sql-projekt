@@ -94,7 +94,7 @@ BEGIN TRANSACTION
         RAISERROR('Post nigdy nie został usunięty!', 16, 1)
     END
 
-    INSERT INTO Posty VALUES(Treść, Id_Autora, Id_Grupy, Ilość_Polubień, Data_Dodania)
+    INSERT INTO Posty (Treść, Id_Autora, Id_Grupy, Ilość_Polubień, Data_Dodania)
     SELECT Treść, Id_Autora, Id_Grupy, Ilość_Polubień, Data_Dodania
     FROM Posty_Archiwum
     WHERE Id = @IdPostu
@@ -132,7 +132,7 @@ BEGIN
     DECLARE @IdGrupy INT
     SET @IdGrupy = (
         SELECT Id_Grupy FROM Posty
-        WHERE Id_Postu = @IdPostu
+        WHERE Id = @IdPostu
     )
 
     DECLARE @Uprawnienia INT
@@ -164,7 +164,7 @@ CREATE OR ALTER PROCEDURE ZmieńZdjęcieProfilowe (@IdKonta INT, @Ścieżka VARC
 AS
 BEGIN TRANSACTION
 
-    IF ((SELECT COUNT (*) FROM Konta WHERE Id = @Id_Konta) = 0) BEGIN
+    IF ((SELECT COUNT (*) FROM Konta WHERE Id = @IdKonta) = 0) BEGIN
         ROLLBACK
         RAISERROR('Brak konta któremu probowano zmienić zdjęcie profilowe', 16, 1)
     END
@@ -202,18 +202,18 @@ BEGIN TRANSACTION
         IdPostera INT
     )
 
-    INSERT INTO @NajlepsiPosterzy VALUES(Id_Konta)
+    INSERT INTO @NajlepsiPosterzy (IdPostera)
     SELECT Id_Konta FROM dbo.NajlepsiPosterzyWGrupie(@IdGrupy)
 
     UPDATE gc
     SET Najlepszy_Poster_Miesiąca = 0
-    FROM Grupy_Członkowie
+    FROM Grupy_Członkowie gc
     WHERE Id_Grupy = @IdGrupy
 
     UPDATE gc
     SET Najlepszy_Poster_Miesiąca = 1
-    FROM Grupy_Członkowie
-    WHERE @Id_Konta IN (@NajlepsiPosterzy) AND Id_Grupy = @IdGrupy
+    FROM Grupy_Członkowie gc
+    WHERE Id_Konta IN (SELECT * FROM @NajlepsiPosterzy) AND Id_Grupy = @IdGrupy
 
     COMMIT
 GO
