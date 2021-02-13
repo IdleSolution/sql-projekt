@@ -11,7 +11,7 @@ CREATE TABLE Konta (
     Login VARCHAR(20) NOT NULL UNIQUE CHECK (LEN(Login) > 5 AND LEN(Login) < 21),
     Hasło VARCHAR(255) NOT NULL,
     Email VARCHAR(30) NOT NULL UNIQUE CHECK (EMAIL LIKE '%_@__%.__%'),
-    Liczba_Znajomych INT DEFAULT 0,
+    Liczba_Znajomych INT NOT NULL DEFAULT 0,
 );
 
 CREATE TABLE Dane_Osobowe (
@@ -21,7 +21,7 @@ CREATE TABLE Dane_Osobowe (
     Nr_Telefonu VARCHAR(9) CHECK (LEN(Nr_Telefonu) = 9),
     Urodziny DATETIME,
     Id_Adresu INT FOREIGN KEY REFERENCES Adresy(Id),
-    Id_Konta INT FOREIGN KEY REFERENCES Konta(Id)
+    Id_Konta INT NOT NULL FOREIGN KEY REFERENCES Konta(Id)
 )
 
 
@@ -30,7 +30,7 @@ CREATE TABLE Zdjęcia (
     Ścieżka VARCHAR(255) NOT NULL,
     Id_Konta INT NOT NULL REFERENCES Konta(Id),
     Podpis VARCHAR(30),
-    Wymiary VARCHAR(11) CHECK (Wymiary LIKE '%x%')
+    Wymiary VARCHAR(11) NOT NULL CHECK (Wymiary LIKE '%x%')
 )
 
 CREATE TABLE Zdjęcia_Profilowe (
@@ -52,7 +52,7 @@ CREATE TABLE Grupy (
     Id INT NOT NULL PRIMARY KEY IDENTITY (1,1),
     Id_Założyciela INT NOT NULL FOREIGN KEY REFERENCES Konta(Id),
     Nazwa VARCHAR(50) NOT NULL UNIQUE,
-    Opis VARCHAR(255) NOT NULL
+    Opis VARCHAR(255)
 )
 
 CREATE TABLE Moderatorzy_Grup (
@@ -71,7 +71,7 @@ CREATE TABLE Grupy_Kategorie (
 CREATE TABLE Grupy_Członkowie (
     Id_Grupy INT NOT NULL REFERENCES Grupy(Id),
     Id_Konta INT NOT NULL REFERENCES Konta(Id),
-    Najlepszy_Poster_Miesiąca BIT NOT NULL DEFAULT 0
+    Najlepszy_Poster BIT NOT NULL DEFAULT 0
     PRIMARY KEY(Id_Grupy, Id_Konta)
 )
 
@@ -80,7 +80,7 @@ CREATE TABLE Posty (
     Treść VARCHAR(MAX) NOT NULL CHECK (LEN(Treść) > 5),
     Id_Autora INT NOT NULL REFERENCES Konta(Id),
     Id_Grupy INT REFERENCES Grupy(Id),
-    Ilość_Polubień INT NOT NULL,
+    Ilość_Polubień INT NOT NULL DEFAULT 0,
     Data_dodania DATETIME NOT NULL
 )
 
@@ -89,7 +89,7 @@ CREATE TABLE Komentarze (
     Treść VARCHAR(MAX) NOT NULL CHECK (LEN(Treść) > 1),
     Id_Postu INT NOT NULL REFERENCES Posty(Id),
     Id_Autora INT NOT NULL REFERENCES Konta(Id),
-    Ilość_Polubień INT NOT NULL,
+    Ilość_Polubień INT NOT NULL DEFAULT 0,
     Data_dodania DATETIME NOT NULL,
 )
 
@@ -98,7 +98,7 @@ CREATE TABLE Wiadomości (
     Id_Odbiorca INT NOT NULL FOREIGN KEY REFERENCES Konta(Id),
     Id_Nadawca INT NOT NULL FOREIGN KEY REFERENCES Konta(Id),
     Treść VARCHAR(MAX) NOT NULL,
-    Data_Wysłania DATETIME,
+    Data_Wysłania DATETIME NOT NULL,
 )
 
 CREATE TABLE Wydarzenia (

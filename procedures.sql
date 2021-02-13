@@ -194,7 +194,7 @@ GO
 
 ---------------------------------------
 
-CREATE OR ALTER PROCEDURE NajlepsiPosterzyMiesiąca(@IdGrupy INT)
+CREATE OR ALTER PROCEDURE ZaktualizujNajlepszychPosterówGrupy(@IdGrupy INT)
 AS
 BEGIN TRANSACTION
 
@@ -206,12 +206,12 @@ BEGIN TRANSACTION
     SELECT Id_Konta FROM dbo.NajlepsiPosterzyWGrupie(@IdGrupy)
 
     UPDATE gc
-    SET Najlepszy_Poster_Miesiąca = 0
+    SET Najlepszy_Poster = 0
     FROM Grupy_Członkowie gc
     WHERE Id_Grupy = @IdGrupy
 
     UPDATE gc
-    SET Najlepszy_Poster_Miesiąca = 1
+    SET Najlepszy_Poster = 1
     FROM Grupy_Członkowie gc
     WHERE Id_Konta IN (SELECT * FROM @NajlepsiPosterzy) AND Id_Grupy = @IdGrupy
 
