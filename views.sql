@@ -1,7 +1,7 @@
-CREATE VIEW IlośćKomentarzyPost AS
-SELECT P.Id, P.Treść, P.Ilość_Polubień, A.IlośćKomentarzy
+CREATE OR ALTER VIEW IlośćKomentarzyPost AS
+SELECT P.Id, P.Treść, P.Ilość_Polubień, ISNULL(A.IlośćKomentarzy,0) AS IlośćKomentarzy
 FROM Posty P
-INNER JOIN (
+LEFT JOIN (
     SELECT K.Id_Postu, COUNT(*) IlośćKomentarzy 
     FROM Komentarze K
     GROUP BY K.Id_Postu
@@ -10,7 +10,7 @@ GO
 
 -----
 
-CREATE VIEW RozpoczęteWydarzeniaSzczegóły AS
+CREATE OR ALTER VIEW RozpoczęteWydarzeniaSzczegóły AS
 SELECT W.Nazwa_Wydarzenia, W.Opis, Z.Ścieżka, A.Miasto, A.Ulica
 FROM Wydarzenia W
 INNER JOIN Zdjęcia Z ON Z.Id = W.Id_Zdjęcia
@@ -20,7 +20,7 @@ GO
 
 ---------
 
-CREATE VIEW ŚredniaWiekuWGrupach AS
+CREATE OR ALTER VIEW ŚredniaWiekuWGrupach AS
 SELECT G.Nazwa, G.Opis, AV.ŚredniWiek
 FROM Grupy G
 INNER JOIN (
@@ -33,7 +33,7 @@ GO
 
 -----------
 
-CREATE VIEW OsobyTenSamAdres AS
+CREATE OR ALTER VIEW OsobyTenSamAdres AS
 SELECT DO.Imię, DO.Nazwisko, DO.Nr_Telefonu, AD.TenSamAdres
 FROM Dane_Osobowe DO
 INNER JOIN (
@@ -44,3 +44,4 @@ INNER JOIN (
 GO
 
 ----------
+
