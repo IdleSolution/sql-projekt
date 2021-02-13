@@ -1,17 +1,17 @@
-CREATE TRIGGER ArchiwizujPostyUpdate
+CREATE OR ALTER TRIGGER ArchiwizujPostyUpdate
 ON Posty
 AFTER UPDATE 
 AS
 IF UPDATE(Treść) BEGIN
-    INSERT INTO Posty_Archiwum VALUES (Treść, Id_Autora, Id_Grupy, Ilość_Polubień, Data_Dodania, GETDATE(), 'edycja') 
-    SELECT Treść, Id_Autora, Id_Grupy, Ilość_Polubień, Data_Dodania
-    FROM Updated 
+    INSERT INTO Posty_Archiwum (Treść, Id_Autora, Id_Grupy, Ilość_Polubień, Data_Dodania, Data_Zmiany, Stan) 
+    SELECT Treść, Id_Autora, Id_Grupy, Ilość_Polubień, Data_Dodania, GETDATE(), 'edycja'
+    FROM Inserted 
 END
 GO
 
 --------------------------------------------------------------------------------
 
-CREATE TRIGGER ArchiwizujPostyDelete
+CREATE OR ALTER TRIGGER ArchiwizujPostyDelete
 ON Posty
 INSTEAD OF DELETE 
 AS
@@ -34,8 +34,8 @@ SET @DeletedID = (
 DELETE FROM Posty
 WHERE Id = @DeletedID
 
-INSERT INTO Posty_Archiwum VALUES (Treść, Id_Autora, Id_Grupy, Ilość_Polubień, Data_Dodania, GETDATE(), 'usunięcie') 
-SELECT Treść, Id_Autora, Id_Grupy, Ilość_Polubień, Data_Dodania
+INSERT INTO Posty_Archiwum (Treść, Id_Autora, Id_Grupy, Ilość_Polubień, Data_Dodania, Data_Zmiany, Stan) 
+SELECT Treść, Id_Autora, Id_Grupy, Ilość_Polubień, Data_Dodania, GETDATE(), 'usunięcie'
 FROM Deleted
 
 DELETE FROM Komentarze
@@ -45,7 +45,7 @@ GO
 
 --------------------------------------
 
-CREATE TRIGGER DodajKonto
+CREATE OR ALTER TRIGGER DodajKonto
 ON Konta
 INSTEAD OF INSERT
 AS
@@ -68,14 +68,14 @@ SET @Hasło = (
 
 SET @Hasło = (SELECT HASHBYTES('SHA2_256', @Hasło))
 
-INSERT INTO Konta VALUES (Login, @Hasło, Email)
-SELECT Login, Email FROM inserted
+INSERT INTO Konta (Login, Hasło, Email)
+SELECT Login, @Hasło, Email FROM inserted
 
 GO
 
 -----------------------------------------------
 
-CREATE TRIGGER EdytujKonto
+CREATE OR ALTER TRIGGER EdytujKonto
 ON Konta
 INSTEAD OF UPDATE
 AS
@@ -114,8 +114,8 @@ SET @LiczbaZnajomychPóźniej = (
     FROM inserted
 )
 
-IF(@LiczbaZnajomychPóźniej - @LiczbaZnajomychWcześniej <> 0 AND 
-    @LiczbaZnajomychPóźniej - @LiczbaZnajomychWcześniej <> 1 AND
+IF(@LiczbaZnajomychPóźniej - @LiczbaZnajomychWcześniej <> 0 OR 
+    @LiczbaZnajomychPóźniej - @LiczbaZnajomychWcześniej <> 1 OR
     @LiczbaZnajomychPóźniej - @LiczbaZnajomychWcześniej <> -1)
 BEGIN
     ROLLBACK
@@ -133,7 +133,7 @@ BEGIN
 
     UPDATE k
     SET Hasło = @Hasło
-    FROM Konta
+    FROM Konta k
 END
 
 IF (UPDATE(Email))
@@ -145,21 +145,21 @@ BEGIN
 
     UPDATE k
     SET Email = @Email
-    FROM Konta
+    FROM Konta k
 END
 
 IF (UPDATE(Liczba_Znajomych))
 BEGIN
     UPDATE k
     SET Liczba_Znajomych = @LiczbaZnajomychPóźniej
-    FROM Konta
+    FROM Konta k
 END
 
 GO
 
 ---------------------------------------------
 
-CREATE TRIGGER DodajZnajomych
+CREATE OR ALTER TRIGGER DodajZnajomych
 ON Znajomi
 AFTER INSERT
 AS
@@ -176,19 +176,19 @@ SET @Id2 = (
 
 UPDATE k
 SET k.Liczba_znajomych = k.Liczba_znajomych + 1
-FROM Konta
+FROM Konta k
 WHERE k.Id = @Id1
 
 UPDATE k
 SET k.Liczba_znajomych = k.Liczba_znajomych + 1
-FROM Konta
+FROM Konta k
 WHERE k.Id = @Id2
 
 GO
 
 
 ---------------------------------------------------
-CREATE TRIGGER UsuńZnajomych
+CREATE OR ALTER TRIGGER UsuńZnajomych
 ON Znajomi
 AFTER DELETE
 AS
@@ -205,12 +205,12 @@ SET @Id2 = (
 
 UPDATE k
 SET k.Liczba_znajomych = k.Liczba_znajomych - 1
-FROM Konta
+FROM Konta k
 WHERE k.Id = @Id1
 
 UPDATE k
 SET k.Liczba_znajomych = k.Liczba_znajomych - 1
-FROM Konta
+FROM Konta k
 WHERE k.Id = @Id2
 
 GO
