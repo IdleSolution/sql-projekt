@@ -61,6 +61,13 @@ BEGIN
     RAISERROR('Można dodać tylko jednego użytkownika na raz', 16, 1)
 END
 
+DECLARE @Id INT
+DECLARE @Login VARCHAR(20)
+
+SET @Login = (
+    SELECT Login FROM inserted
+)
+
 DECLARE @Hasło VARCHAR(255)
 SET @Hasło = (
     SELECT Hasło FROM inserted
@@ -70,6 +77,12 @@ SET @Hasło = (SELECT HASHBYTES('SHA2_256', @Hasło))
 
 INSERT INTO Konta (Login, Hasło, Email)
 SELECT Login, @Hasło, Email FROM inserted
+
+SET @Id = (
+    SELECT Id FROM Konta WHERE Login = @Login
+)
+
+INSERT INTO Zdjęcia_Profilowe (Id_Konta, Id_Zdjęcia) VALUES(@Id, null)
 
 GO
 

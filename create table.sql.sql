@@ -8,7 +8,7 @@ CREATE TABLE Adresy (
 
 CREATE TABLE Konta (
     Id INT NOT NULL PRIMARY KEY IDENTITY (1,1),
-    Login VARCHAR(20) NOT NULL UNIQUE CHECK (LEN(Login) > 5 AND LEN(Login) < 21),
+    Login VARCHAR(20) NOT NULL UNIQUE CHECK (LEN(Login) > 5 AND LEN(Login) < 21),   
     Hasło VARCHAR(255) NOT NULL,
     Email VARCHAR(30) NOT NULL UNIQUE CHECK (EMAIL LIKE '%_@__%.__%'),
     Liczba_Znajomych INT NOT NULL DEFAULT 0,
@@ -35,7 +35,7 @@ CREATE TABLE Zdjęcia (
 
 CREATE TABLE Zdjęcia_Profilowe (
     Id_Konta INT NOT NULL FOREIGN KEY REFERENCES Konta(Id) PRIMARY KEY,
-    Id_Zdjęcia INT NOT NULL REFERENCES Zdjęcia(Id)
+    Id_Zdjęcia INT FOREIGN KEY REFERENCES Zdjęcia(Id)
 )
 
 CREATE TABLE Znajomi (

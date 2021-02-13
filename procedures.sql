@@ -160,7 +160,7 @@ GO
 
 --------
 
-CREATE OR ALTER PROCEDURE ZmieńZdjęcieProfilowe (@IdKonta INT, @Ścieżka VARCHAR(255), @IdNowegoProfilowego INT = NULL, @Podpis VARCHAR(30) = NULL, @Wymiary VARCHAR(11) = NULL)
+CREATE OR ALTER PROCEDURE ZmieńZdjęcieProfilowe (@IdKonta INT, @Ścieżka VARCHAR(255) = NULL, @IdNowegoProfilowego INT = NULL, @Podpis VARCHAR(30) = NULL, @Wymiary VARCHAR(11) = NULL)
 AS
 BEGIN TRANSACTION
 
@@ -177,6 +177,12 @@ BEGIN TRANSACTION
     END
     ELSE
     BEGIN
+
+        IF (@Ścieżka = NULL OR @Podpis = NULL OR @Wymiary = NULL) BEGIN
+            ROLLBACK
+            RAISERROR('Brak odpowiednich paramatrów do zmiany zdjęcia profilowego', 16, 1)
+        END
+        
         INSERT INTO Zdjęcia (Ścieżka, Id_Konta, Podpis, Wymiary) VALUES (@Ścieżka, @IdKonta, @Podpis, @Wymiary)
 
         SET @IdNowegoProfilowego = (
