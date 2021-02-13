@@ -52,8 +52,9 @@ BEGIN
         WHERE Status_Uczestnictwa = 'zainteresowany' AND Id_Wydarzenia = @Id_Wydarzenia
     )
 
-    INSERT INTO @WydarzeniaStatusy VALUES (Id, Nazwa_Wydarzenia, Opis, @Uczestnicy, @Ludzie_którzy_odmówili, @Brak_Odpowiedzi, @Zainteresowani)
-    SELECT Id, Nazwa_Wydarzenia, Opis FROM Wydarzenia WHERE Id = @Id_Wydarzenia
+    INSERT INTO @WydarzeniaStatusy (Id, Nazwa_Wydarzenia, Opis, Uczestnicy, Ludzie_którzy_odmówili, Brak_Odpowiedzi, Zainteresowani)
+    SELECT Id, Nazwa_Wydarzenia, Opis, @Uczestnicy, @Ludzie_którzy_odmówili, @Brak_Odpowiedzi, @Zainteresowani 
+    FROM Wydarzenia WHERE Id = @Id_Wydarzenia
     
 
     RETURN
@@ -74,20 +75,21 @@ RETURNS @NajlepsiPosterzy TABLE
 AS
 BEGIN
 
-INSERT INTO @NajlepsiPosterzy VALUES(k.Id, d.Imię, d.Nazwisko, p.Ilość_Polubień)
-SELECT TOP 5 k.Id, d.Imię, d.Naziwsko, p.Ilość_Polubień
-FROM Posty p
-INNER JOIN Konta k ON p.Id_Autora = k.Id
-INNER JOIN Dane_Osobowe d ON k.Id = d.Id_Konta
-WHERE p.Id_Grupy = @IdGrupy
-GROUP BY p.Id_Autora
-ORDER BY p.Ilość_Polubień DESC
+    INSERT INTO @NajlepsiPosterzy (Id_Konta, Imię, Nazwisko, Ilość_Polubień)
+    SELECT DO.Id_Konta, DO.Imię, DO.Nazwisko, T.Ilość_Polubień
+    FROM Dane_Osobowe DO
+    INNER JOIN (
+        SELECT TOP 5 P.Id_Autora, SUM(Ilość_Polubień) Ilość_Polubień
+        FROM Posty P
+        GROUP BY Id_Autora
+        ORDER BY SUM(Ilość_Polubień) DESC
+    ) T ON DO.Id_Konta = T.Id_Autora
+    ORDER BY T.Ilość_Polubień DESC
 
 RETURN
 
 END
 GO
-
 
 ----------------------------------------------------------
 
@@ -115,8 +117,9 @@ BEGIN
     SET @PoczątekNazwiska = ''
 END
 
-INSERT INTO @Użytkownicy VALUES(d.Id_Konta, d.Imię, d.Nazwisko, z.Id_Zdjęcia)
-SELECT d.Id_Konta, d.Imię, d.Nazwisko, z.Id_Zdjęcia FROM Dane_Osobowe
+INSERT INTO @Użytkownicy (Id_Konta, Imię, Nazwisko, Id_Zdjęcia_Profilowego)
+SELECT d.Id_Konta, d.Imię, d.Nazwisko, z.Id_Zdjęcia
+FROM Dane_Osobowe d
 INNER JOIN Zdjęcia_Profilowe z ON z.Id_Konta = d.Id_Konta
 WHERE d.Imię LIKE @PoczątekImienia + '%' AND d.Nazwisko LIKE @PoczątekNazwiska + '%'
 
@@ -136,19 +139,19 @@ RETURNS @Znajomi TABLE (
 )
 AS
 BEGIN
-    INSERT INTO @Znajomi VALUES (z.Id1, d.Imię, d.Nazwisko, zp.Id_Zdjęcia)
+    INSERT INTO @Znajomi (Id_Znajomego, Imię, Nazwisko, Id_Zdjęcia_Profilowego)
     SELECT z.Id1, d.Imię, d.Nazwisko, zp.Id_Zdjęcia
     FROM Znajomi z
     INNER JOIN Dane_Osobowe d ON d.Id_Konta = z.Id1
-    INNER JOIN Zdjęcia_Profilowe zp ON zp.Id_Konca = d.Id_Konta
+    INNER JOIN Zdjęcia_Profilowe zp ON zp.Id_Konta = d.Id_Konta
     WHERE z.Id2 = @IdKonta
 
 
-    INSERT INTO @Znajomi VALUES (z.Id2, d.Imię, d.Nazwisko, zp.Id_Zdjęcia)
+    INSERT INTO @Znajomi (Id_Znajomego, Imię, Nazwisko, Id_Zdjęcia_Profilowego)
     SELECT z.Id2, d.Imię, d.Nazwisko, zp.Id_Zdjęcia
     FROM Znajomi z
     INNER JOIN Dane_Osobowe d ON d.Id_Konta = z.Id2
-    INNER JOIN Zdjęcia_Profilowe zp ON zp.Id_Konca = d.Id_Konta
+    INNER JOIN Zdjęcia_Profilowe zp ON zp.Id_Konta = d.Id_Konta
     WHERE z.Id1 = @IdKonta
 
     RETURN
@@ -173,22 +176,22 @@ BEGIN
         Nazwisko VARCHAR(50),
         Id_Zdjęcia_Profilowego INT
     )
-    SET @ListaZnajomych = dbo.ListaZnajomych(@IdKonta)
+    INSERT INTO @ListaZnajomych (Id_Znajomego, Imię, Nazwisko,Id_Zdjęcia_Profilowego) 
+    SELECT * FROM dbo.ListaZnajomych(@IdKonta)
 
     DECLARE @ListaCzłonkówGrupy TABLE (
         Id_Członka INT
     )
+    
+    INSERT INTO @ListaCzłonkówGrupy (Id_Członka)
+    SELECT Id_Konta AS Id_Członka
+    FROM Grupy_Członkowie
+    WHERE Id_Grupy = @IdGrupy
 
-    SET @ListaCzłonkówGrupy = (
-        SELECT Id_Konta
-        FROM Grupy_Członkowie
-        WHERE Id_Grupy = @IdGrupy
-    )
-
-    INSERT INTO @ZnajomiWGrupie VALUES(lz.Id_Znajomego, lz.Imię, lz.Nazwisko, lz.Id_Zdjęcia)
-    SELECT lz.Id_Znajomego, lz.Imię, lz.Nazwisko, lz.Id_Zdjęcia
+    INSERT INTO @ZnajomiWGrupie (Id_Znajomego, Imię, Nazwisko, Id_Zdjęcia_Profilowego)
+    SELECT lz.Id_Znajomego, lz.Imię, lz.Nazwisko, lz.Id_Zdjęcia_Profilowego
     FROM @ListaZnajomych lz
-    WHERE lz.Id_Znajomego IN (@ListaCzłonkówGrupy)
+    WHERE lz.Id_Znajomego IN (SELECT Id_Członka FROM @ListaCzłonkówGrupy)
 
     RETURN
 END
@@ -210,10 +213,12 @@ BEGIN
         Nazwisko VARCHAR(50),
         Id_Zdjęcia_Profilowego INT
     )
-    SET @ListaZnajomych = dbo.ListaZnajomych(@IdKonta)
 
-    INSERT INTO @ZnajomiZUrodzinami VALUES(lz.Id_Znajomego, lz.Imię, lz.Nazwisko, lz.Id_Zdjęcia)
-    SELECT lz.Id_Znajomego, lz.Imię, lz.Nazwisko, lz.Id_Zdjęcia
+    INSERT INTO @ListaZnajomych (Id_Znajomego, Imię, Nazwisko,Id_Zdjęcia_Profilowego) 
+    SELECT * FROM dbo.ListaZnajomych(@IdKonta)
+
+    INSERT INTO @ZnajomiZUrodzinami (Id_Znajomego, Imię, Nazwisko, Id_Zdjęcia_Profilowego)
+    SELECT lz.Id_Znajomego, lz.Imię, lz.Nazwisko, lz.Id_Zdjęcia_Profilowego
     FROM @ListaZnajomych lz
     INNER JOIN Dane_Osobowe d ON d.Id_Konta = lz.Id_Znajomego
     WHERE MONTH(d.Urodziny) = MONTH(GETDATE()) AND DAY(d.Urodziny) = DAY(GETDATE())
