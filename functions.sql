@@ -3,7 +3,7 @@ CREATE OR ALTER FUNCTION PostyZGrupyPoDacie (@Id_Grupy INT, @Data DATETIME)
 RETURNS TABLE
 AS
 RETURN (
-    SELECT P.Id, P.Treść, P.Ilość_Polubień 
+    SELECT P.Id, P.Treść, P.Ilość_Polubień, P.Data_dodania
     FROM Posty P
     WHERE P.Id_Grupy = @Id_Grupy AND P.Data_dodania >= @Data
 )
@@ -112,8 +112,9 @@ SET @PoczątekNazwiska = (
     SELECT PARSENAME(REPLACE(@CiągZnakowy, ' ', '.'), 1)
 )
 
-IF(@PoczątekNazwiska IS NULL)
+IF(@PoczątekImienia IS NULL)
 BEGIN
+    SET @PoczątekImienia = @PoczątekNazwiska
     SET @PoczątekNazwiska = ''
 END
 
@@ -142,16 +143,16 @@ BEGIN
     INSERT INTO @Znajomi (Id_Znajomego, Imię, Nazwisko, Id_Zdjęcia_Profilowego)
     SELECT z.Id1, d.Imię, d.Nazwisko, zp.Id_Zdjęcia
     FROM Znajomi z
-    INNER JOIN Dane_Osobowe d ON d.Id_Konta = z.Id1
-    INNER JOIN Zdjęcia_Profilowe zp ON zp.Id_Konta = d.Id_Konta
+    LEFT JOIN Dane_Osobowe d ON d.Id_Konta = z.Id1
+    LEFT JOIN Zdjęcia_Profilowe zp ON zp.Id_Konta = d.Id_Konta
     WHERE z.Id2 = @IdKonta
 
 
     INSERT INTO @Znajomi (Id_Znajomego, Imię, Nazwisko, Id_Zdjęcia_Profilowego)
     SELECT z.Id2, d.Imię, d.Nazwisko, zp.Id_Zdjęcia
     FROM Znajomi z
-    INNER JOIN Dane_Osobowe d ON d.Id_Konta = z.Id2
-    INNER JOIN Zdjęcia_Profilowe zp ON zp.Id_Konta = d.Id_Konta
+    LEFT JOIN Dane_Osobowe d ON d.Id_Konta = z.Id2
+    LEFT JOIN Zdjęcia_Profilowe zp ON zp.Id_Konta = d.Id_Konta
     WHERE z.Id1 = @IdKonta
 
     RETURN
@@ -220,7 +221,7 @@ BEGIN
     INSERT INTO @ZnajomiZUrodzinami (Id_Znajomego, Imię, Nazwisko, Id_Zdjęcia_Profilowego)
     SELECT lz.Id_Znajomego, lz.Imię, lz.Nazwisko, lz.Id_Zdjęcia_Profilowego
     FROM @ListaZnajomych lz
-    INNER JOIN Dane_Osobowe d ON d.Id_Konta = lz.Id_Znajomego
+    LEFT JOIN Dane_Osobowe d ON d.Id_Konta = lz.Id_Znajomego
     WHERE MONTH(d.Urodziny) = MONTH(GETDATE()) AND DAY(d.Urodziny) = DAY(GETDATE())
 
     RETURN

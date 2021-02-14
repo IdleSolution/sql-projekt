@@ -166,6 +166,7 @@ BEGIN
     UPDATE k
     SET Liczba_Znajomych = @LiczbaZnajomychPóźniej
     FROM Konta k
+    WHERE k.Id = @Id
 END
 
 GO

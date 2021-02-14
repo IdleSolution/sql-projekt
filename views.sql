@@ -10,12 +10,12 @@ GO
 
 -----
 
-CREATE OR ALTER VIEW RozpoczęteWydarzeniaSzczegóły AS
+CREATE OR ALTER VIEW TrwająceWydarzeniaSzczegóły AS
 SELECT W.Nazwa_Wydarzenia, W.Opis, Z.Ścieżka, A.Miasto, A.Ulica
 FROM Wydarzenia W
-INNER JOIN Zdjęcia Z ON Z.Id = W.Id_Zdjęcia
-INNER JOIN Adresy A ON A.Id = W.Id_Adresu 
-WHERE Godzina_Rozpoczęcia >= GETDATE() AND Godzina_Zakończenia <= GETDATE() 
+LEFT JOIN Zdjęcia Z ON Z.Id = W.Id_Zdjęcia
+LEFT JOIN Adresy A ON A.Id = W.Id_Adresu 
+WHERE Godzina_Rozpoczęcia <= GETDATE() AND Godzina_Zakończenia >= GETDATE()
 GO
 
 ---------
@@ -33,8 +33,8 @@ GO
 
 -----------
 
-CREATE OR ALTER VIEW OsobyTenSamAdres AS
-SELECT DO.Imię, DO.Nazwisko, DO.Nr_Telefonu, AD.TenSamAdres
+CREATE OR ALTER VIEW IlośćOsóbPodJednymAdresem AS
+SELECT DO.Imię, DO.Nazwisko, DO.Nr_Telefonu, AD.TenSamAdres, AD.Id_Adresu
 FROM Dane_Osobowe DO
 INNER JOIN (
     SELECT DO.Id_Adresu, COUNT (*) AS TenSamAdres
