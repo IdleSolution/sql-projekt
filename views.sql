@@ -26,22 +26,39 @@ FROM Grupy G
 INNER JOIN (
     SELECT GC.Id_Grupy, AVG(YEAR(GETDATE()) - YEAR(DO.Urodziny)) AS ŚredniWiek
     FROM Grupy_Członkowie GC
-    INNER JOIN Dane_Osobowe DO ON DO.Id_Konta = GC.Id_Konta
+    LEFT JOIN Dane_Osobowe DO ON DO.Id_Konta = GC.Id_Konta
     GROUP BY Id_Grupy
 ) AV ON AV.Id_Grupy = G.Id
 GO
 
 -----------
 
-CREATE OR ALTER VIEW IlośćOsóbPodJednymAdresem AS
-SELECT DO.Imię, DO.Nazwisko, DO.Nr_Telefonu, AD.TenSamAdres, AD.Id_Adresu
-FROM Dane_Osobowe DO
+CREATE OR ALTER VIEW ŚredniaWiekuWydarzenia AS
+SELECT W.Nazwa_Wydarzenia, W.Opis, W.Godzina_Rozpoczęcia, W.Godzina_Zakończenia, AD.ŚredniWiek
+FROM Wydarzenia W
 INNER JOIN (
-    SELECT DO.Id_Adresu, COUNT (*) AS TenSamAdres
-    FROM Dane_Osobowe DO
-    GROUP BY Id_Adresu
-) AD ON AD.Id_Adresu = DO.Id_Adresu 
+    SELECT WU.Id_Wydarzenia, AVG(YEAR(GETDATE()) - YEAR(DO.Urodziny)) AS ŚredniWiek
+    FROM Wydarzenia_Uczestnicy WU
+    LEFT JOIN Dane_Osobowe DO ON WU.Id_Konta =  DO.Id_Konta
+    WHERE WU.Status_Uczestnictwa = 'uczestniczy'
+    GROUP BY WU.Id_Wydarzenia
+) AD ON AD.Id_Wydarzenia = W.Id
+GO
+
+--------------------------------------
+
+CREATE OR ALTER VIEW IlośćGrupWKategorii AS
+SELECT Nazwa_Kategorii, COUNT(*) AS Ilość_Grup
+FROM Grupy_Kategorie
+GROUP BY Nazwa_Kategorii
 GO
 
 ----------
+CREATE OR ALTER VIEW IlośćOsóbPodJednymAdresem
+AS
+SELECT DO.Id_Adresu, a.Województwo, a.Miasto, a.Ulica, a.Kod_Pocztowy, 
+COUNT(*) OVER(PARTITION BY DO.Id_Adresu) AS Ilość_Osób
+FROM Dane_Osobowe DO
+INNER JOIN Adresy a ON a.Id = DO.Id_Adresu
+GO
 
