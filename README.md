@@ -1,0 +1,1 @@
+SQL Project we made for our database course. It is written in MS SQL Server with the use of TSQL. A full description of all functions is provided in description.pdf (in Polish language)
